@@ -29,6 +29,8 @@ def initialize_widgets():
     tptui_util.view_widget(fi, 3)
     tptui_util.view_widget(
         TepidWidgets.InfoWidget(), 5)
+    tptui_util.view_widget(
+        TepidWidgets.VeryLongQueueView(), 4)
     tcfg.loop.widget = frame
     tptui_util.view_widget(mv, 1, visit=True)
 

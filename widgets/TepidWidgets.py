@@ -498,13 +498,137 @@ class LongJobRowListWidget(urwid.WidgetWrap):
         urwid.WidgetWrap.__init__(self, linebox)
 
 
+class VeryLongJobRowWidget(urwid.WidgetWrap):
+    _selectable = True
+
+    def __init__(self, j):
+        self.job = j
+        cols = self._build_widget()
+        urwid.WidgetWrap.__init__(self, cols)
+        self._error_check()
+
+    def _build_widget(self):
+        j = self.job
+        user = urwid.Text(j.user)
+        pages_str = str(
+            j.pages) if j.colour_pages == 0 else '{} ({} colour)'.format(
+                j.pages, j.colour_pages)
+        pages = urwid.Text(pages_str)
+        status_str = "Failed" if j.error != "" else \
+                                            "Printed" if not j.refunded else \
+                                            "Refunded"
+        status = urwid.Text(status_str)
+        started = urwid.Text(
+            datetime.datetime.fromtimestamp(
+                (j.started) / 1000).strftime("%H:%M %d %b %Y"))
+        host = urwid.Text(j.host)
+        name = urwid.Text(j.name)
+        cols = urwid.Columns([(8, user), (18, pages), (10, status),
+                              (19, started), (16, host), ('weight', 1, name)])
+        return cols
+
+    def _error_check(self):
+        j = self.job
+        if j.error != "":
+            self._w = urwid.AttrMap(
+                self._w,
+                'job_status_failed',
+                focus_map='focus_cursor_line_failed')
+        else:
+            self._w = urwid.AttrMap(
+                self._w, None, focus_map='focus_cursor_line')
+
+    def selectable(self):
+        return True
+
+    def reload_print_job(self):
+        updated = tcfg.t.get_print_job(self.job.id)
+        self.job = updated
+        self._w = self._build_widget()
+        self._error_check()
+        self._invalidate()
+
+    def keypress(self, size, key):
+        if key == 'r':
+            self.job.refund(tcfg.t)
+            self.reload_print_job()
+        if key == 'R':
+            self.job.unrefund(tcfg.t)
+            self.reload_print_job()
+        return key
+
+
+class VeryLongJobRowListWidget(urwid.WidgetWrap):
+    def __init__(self, queue):
+        user = urwid.Text("User")
+        pages = urwid.Text("Pages")
+        status = urwid.Text("Status")
+        started = urwid.Text("Started")
+        host = urwid.Text("Host")
+        name = urwid.Text("Name")
+        title_cols = urwid.Columns([(8, user), (18, pages), (10, status),
+                                    (19, started), (16, host), ('weight', 1,
+                                                                name)])
+
+        very_long_job_row_widgets = []
+        for j in queue:
+            very_long_job_row_widgets.append(
+                VeryLongJobRowWidget(Tepid_Connection.PrintJob(j)))
+        listwalker = urwid.SimpleFocusListWalker(very_long_job_row_widgets)
+        listbox = urwid.ListBox(listwalker)
+        bx = urwid.BoxAdapter(listbox, height=30)
+        pile = urwid.Pile([title_cols, urwid.Divider(), bx])
+        padding = urwid.Padding(pile, left=2, right=2)
+        linebox = urwid.LineBox(padding)
+
+        urwid.WidgetWrap.__init__(self, linebox)
+
+
+class VeryLongQueueView(urwid.WidgetWrap):
+    def __init__(self):
+        rbuttons = []
+        self.rbobjects = []
+        self.button = urwid.Button("Load Queue", on_press=self.load_queue)
+        ql = tcfg.t.get_queue_list()
+        for q in ql:
+            self.rbobjects.append((12, urwid.RadioButton(rbuttons, q['name'])))
+        self.load_queue()
+        w = self._build_widget()
+        urwid.WidgetWrap.__init__(self, w)
+
+    def _build_widget(self):
+        cols = urwid.Columns(self.rbobjects + [(14, self.button)])
+        pile = urwid.Pile([
+            cols,
+            urwid.Divider(),
+            self.vljrlw])
+
+        f = urwid.Filler(pile)
+        return f
+
+    def reload_widget(self):
+        if hasattr(self, '_w'):
+            w = self._build_widget()
+            self._w = w
+
+    def load_queue(self, calling_button=None):
+        queue = self.rbobjects[0][1]
+        for bo in self.rbobjects:
+            if bo[1].state:
+                queue = bo[1].label
+        q = tcfg.t.get_queue(queue)
+        w = VeryLongJobRowListWidget(q)
+        self.vljrlw = w
+        self.reload_widget()
+
+
 class UserInfoView(urwid.WidgetWrap):
     def __init__(self, u, filled=False):
         w = UserTextInfoWidget(u)
 
-        LJRLW = LongJobRowListWidget(u.raw_queue, w)
+        ljrlw = LongJobRowListWidget(u.raw_queue, w)
 
-        pile = urwid.Pile([w, LJRLW])
+        pile = urwid.Pile([w, ljrlw])
 
         if filled:
             f = FillWrapper(pile, footer=self.footer)
