@@ -237,7 +237,8 @@ class TepidUser:
         self.short_user = info['shortUser']
         self.long_user = info['longUser']
         self.email = info['email']
-        self.faculty = info['faculty']
+        self.faculty = \
+            info['faculty'] if 'faculty' in info.keys() else ""
         self.salutation = info['salutation']
         self.real_name = info['realName']
         self.real_name = info['realName']
