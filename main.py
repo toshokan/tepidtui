@@ -1,4 +1,4 @@
-from Tepid_Connection import Tepid_Connection
+from TepidConnection import TepidConnection
 import tcfg
 import tptui_util
 from widgets import TepidWidgets
@@ -10,7 +10,7 @@ def login_wrap():
     shortuser = input("Enter your McGill short username: ")
     password = getpass("Enter your password: ")
     print()
-    return Tepid_Connection(shortuser, password)
+    return TepidConnection(shortuser, password)
 
 
 def quit(caller):
@@ -64,7 +64,7 @@ def master_keyhandler(key):
 
 
 def loginform_wrap(username, password):
-    tcfg.t = Tepid_Connection(username, password)
+    tcfg.t = TepidConnection(username, password)
     initialize_widgets()
 
 

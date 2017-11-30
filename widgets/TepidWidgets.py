@@ -1,4 +1,4 @@
-import Tepid_Connection
+import TepidConnection
 import tcfg
 import tptui_util
 import urwid
@@ -144,7 +144,7 @@ class QueueJobListWidget(urwid.WidgetWrap):
         job_row_widgets = []
         for j in range(0, min(9, len(q))):
             job_row_widgets.append(
-                JobRowWidget(Tepid_Connection.PrintJob(q[j])))
+                JobRowWidget(TepidConnection.PrintJob(q[j])))
         listwalker = urwid.SimpleFocusListWalker(job_row_widgets)
         listbox = urwid.ListBox(listwalker)
         bx = urwid.BoxAdapter(listbox, height=10)
@@ -487,7 +487,7 @@ class LongJobRowListWidget(urwid.WidgetWrap):
         long_job_row_widgets = []
         for j in queue:
             long_job_row_widgets.append(
-                LongJobRowWidget(Tepid_Connection.PrintJob(j), w))
+                LongJobRowWidget(TepidConnection.PrintJob(j), w))
         listwalker = urwid.SimpleFocusListWalker(long_job_row_widgets)
         listbox = urwid.ListBox(listwalker)
         bx = urwid.BoxAdapter(listbox, height=10)
@@ -573,7 +573,7 @@ class VeryLongJobRowListWidget(urwid.WidgetWrap):
         very_long_job_row_widgets = []
         for j in queue:
             very_long_job_row_widgets.append(
-                VeryLongJobRowWidget(Tepid_Connection.PrintJob(j)))
+                VeryLongJobRowWidget(TepidConnection.PrintJob(j)))
         listwalker = urwid.SimpleFocusListWalker(very_long_job_row_widgets)
         listbox = urwid.ListBox(listwalker)
         bx = urwid.BoxAdapter(listbox, height=30)
