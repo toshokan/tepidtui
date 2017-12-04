@@ -6,6 +6,7 @@ import datetime
 
 
 class PrinterStatusWidget(urwid.WidgetWrap):
+    """Printer names styled according to status"""
     _selectable = True
     signals = ['form_complete']
 
@@ -16,6 +17,7 @@ class PrinterStatusWidget(urwid.WidgetWrap):
         urwid.WidgetWrap.__init__(self, w)
 
     def _build_widget(self):
+        """Ease refresh by centralizing widget content spawn"""
         pd = self.pd
         title = urwid.Text(pd.name, align='center')
         if pd.up:
@@ -31,11 +33,13 @@ class PrinterStatusWidget(urwid.WidgetWrap):
         return True
 
     def reload_widget(self):
+        """Rebuild widget and ask for a redraw"""
         w = self._build_widget()
         self._w = w
         self._invalidate()
 
     def down_form(self):
+        """Spawn a form to potentially mark a printer down"""
         w = PrinterMarkForm(self)
         urwid.connect_signal(w, 'form_complete',
                              callback=self.form_complete_callback)
@@ -43,13 +47,16 @@ class PrinterStatusWidget(urwid.WidgetWrap):
         tcfg.loop.draw_screen()
 
     def form_complete_callback(self, caller=None):
+        """Callback for printer down form"""
         self.pd.mark_down(self.down_message, tcfg.t)
         self.reload_widget()
 
     def keypress(self, size, key):
+        # Mark printer down
         if key == 'd':
             if self.pd.up:
                 self.down_form()
+        # Mark printer up
         elif key == 'D':
             self.pd.mark_up(tcfg.t)
             self.reload_widget()
@@ -57,6 +64,7 @@ class PrinterStatusWidget(urwid.WidgetWrap):
 
 
 class PrinterMarkForm(urwid.WidgetWrap):
+    """Popup form to collect info to mark a printer down"""
     signals = ['form_complete']
 
     def __init__(self, caller):
@@ -87,15 +95,18 @@ class PrinterMarkForm(urwid.WidgetWrap):
         urwid.WidgetWrap.__init__(self, o)
 
     def save_message(self, calling_button=None):
+        """Callback to collect user input close form"""
         self.caller.down_message = self.edit.get_edit_text()
         self._emit('form_complete')
         self.close()
 
     def close(self, calling_button=None):
+        """Remove the form from the view"""
         tcfg.loop.widget = self.bottom_w
 
 
 class QueueStatusWidget(urwid.WidgetWrap):
+    """Collect PrinterStatusWidgets into containers for a queue"""
     def __init__(self, name, queue_list):
         queue_name = urwid.Text(name, align='center')
         printer_status_widgets = []
@@ -109,6 +120,7 @@ class QueueStatusWidget(urwid.WidgetWrap):
 
 
 class QueueStatusListWidget(urwid.WidgetWrap):
+    """Collect QueueStatusWidgets for an entire TepidConnection"""
     def __init__(self, queue_list):
         queue_status_widgets = []
         for name in sorted(queue_list):
@@ -119,6 +131,7 @@ class QueueStatusListWidget(urwid.WidgetWrap):
 
 
 class JobRowWidget(urwid.WidgetWrap):
+    """Job information widget for main view (short form)"""
     def __init__(self, j):
         username = urwid.Text(j.user)
         num_pages_str = str(
@@ -134,6 +147,7 @@ class JobRowWidget(urwid.WidgetWrap):
 
 
 class QueueJobListWidget(urwid.WidgetWrap):
+    """Collect JobRowWidgets into a common view for a queue"""
     def __init__(self, name):
         user_title = urwid.Text("User")
         page_title = urwid.Text("Pages", align='center')
@@ -155,6 +169,7 @@ class QueueJobListWidget(urwid.WidgetWrap):
 
 
 class QueueJobListListWidget(urwid.WidgetWrap):
+    """Collect QueueJobListWidgets for an entire TepidConnection"""
     def __init__(self):
         queue_job_list_widgets = []
         for name in sorted(tcfg.t.queues):
@@ -164,6 +179,7 @@ class QueueJobListListWidget(urwid.WidgetWrap):
 
 
 class UserColourPrintingToggle(urwid.WidgetWrap):
+    """Button (like) widget to toggle user's colour printing setting"""
     _selectable = True
 
     def __init__(self, user_text_info_widget):
@@ -178,12 +194,14 @@ class UserColourPrintingToggle(urwid.WidgetWrap):
         return True
 
     def keypress(self, size, key):
+        # Signal to corresponding UserTextInfoWidget to reload"""
         if key == ' ':
             self.user_text_info_widget.colour_printing_toggle()
         return key
 
 
 class LoginForm(urwid.WidgetWrap):
+    """Popup login form"""
     def __init__(self, login_callback):
         self.login_callback = login_callback
         self.bottom_w = tcfg.loop.widget
@@ -212,11 +230,13 @@ class LoginForm(urwid.WidgetWrap):
         urwid.WidgetWrap.__init__(self, o)
 
     def do_login(self, calling_button=None):
+        """Execute callback"""
         self.close()
         self.login_callback(self.username.edit_text,
                             self.password.edit_text)
 
     def close(self, calling_button=None):
+        """Remove widget from the view"""
         tcfg.loop.widget = self.bottom_w
 
 

@@ -18,6 +18,8 @@ def quit(caller):
 
 
 def initialize_widgets():
+    """Initialize widget positions in each view"""
+    # Avoid undefined behaviour if user is not logged in
     if not tcfg.t:
         return
     mv = TepidWidgets.MainView()
@@ -36,8 +38,10 @@ def initialize_widgets():
 
 
 def build_ui_widget(filled=False):
+    """Build a user info widget to display in a view"""
     u = tcfg.t.user_lookup_obj(tcfg.t.user_data['user']['shortUser'])
     uv = TepidWidgets.UserInfoView(u, filled)
+    # Ensure we are working with a box widget
     if not filled:
         f = TepidWidgets.FillWrapper(uv)
         return f
@@ -45,6 +49,7 @@ def build_ui_widget(filled=False):
 
 
 def master_keyhandler(key):
+    """Handle keys that have fallen through all other widgets"""
     if key in ('q', 'Q'):
         raise urwid.ExitMainLoop()
     elif key == "meta 1":
@@ -59,16 +64,19 @@ def master_keyhandler(key):
         tptui_util.change_view(5)
     elif key == "backspace":
         tptui_util.back_widget()
-    elif key == "meta 0":       # debug
+    # DEBUG : Show the view stacks
+    elif key == "meta 0":
         raise ValueError(tcfg._view_stack)
 
 
 def loginform_wrap(username, password):
+    """Run the login process and dispatch widget initialization"""
     tcfg.t = TepidConnection(username, password)
     initialize_widgets()
 
 
 def login(caller):
+    """Login form callback"""
     tcfg.loop.widget = TepidWidgets.LoginForm(loginform_wrap)
 
 
@@ -83,6 +91,7 @@ pl = urwid.Pile([div, txt1, txt2, div, browpad], focus_item=browpad)
 lb = urwid.LineBox(pl, title="TEPID TUI")
 f = urwid.Filler(lb)
 
+# Decadent unnecessary cosmetics that some people ''''need''''
 palette = [('footer', 'black', 'light gray', 'standout'),
            ('error_heading', 'black', 'dark red'),
            ('status_focused', 'white', 'dark blue'),
